@@ -1,0 +1,21 @@
+Fast lib:- it provides cell models and components for high speed of operation 
+Library (gpdk045wc):- it specifies the library which is generic physical design kit and using 45nm TSMC version.
+Attributes Lists:- To design a full adder circuit , we are giving the  list of attributes. It will operate in volts (1v), current(1mA) and with the time duration of 1ns.
+default power supply voltage is 1.32.
+leakage power:- unwanted threshold current when the transistor is off.
+Area is considered zero when designing the adder circuit.
+cell Leakage power is 1.09891.
+operating condition is fast.
+pins are A,B,CI,Co.
+A and B are the input 
+CI,Co are of outputs sum and carry.
+The function for CO = ((AB)+(BCI)+((CI A)).
+The above function performs carry operation.
+It provides 7x7 matrix.
+This also provides about the cell fall time, cell raise time, power consumption.
+It combines the design of flipflops.
+Adder considered is 0.
+pin S is used for sum function ((A^B)^CI).
+delay templates are given as like index1 and index2.
+It is given 1 nanowatt to maintain the life span of the battery.
+for each function it performs separate operation using basic gates.
