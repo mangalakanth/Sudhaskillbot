@@ -1,0 +1,23 @@
+puts "Enter the first number "
+gets stdin a
+puts "Enter the second number "
+gets stdin b
+puts "Enter\n '+' for addition\n '-' for subtraction\n '*' for multiplication\n '/' for division"
+gets stdin ch
+switch $ch {
+ "+" {
+        set result [expr $a+$b]
+        puts "Addition of $a and $b is $result1"
+     }
+ "-" {
+        set result [expr $a-$b]
+        puts "Subtraction of $a and $b is $result2"
+     }
+ "*" {
+        set result [expr $a*$b]
+        puts "Multiplication of $a and $b is $result3"  
+     }
+ "/" {
+        set result [expr $a/$b]
+        puts "Division of $a and $b is $result4"  
+     }
