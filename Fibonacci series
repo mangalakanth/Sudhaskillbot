@@ -1,0 +1,12 @@
+#!/user/bin/tclsh
+puts "enter the number of elements:"
+set n [gets Stdin]
+set a 0
+set b 1 
+set c 0
+puts "fibonacci series:"
+for {set i 0} {$i < $n} {incr i} {
+           puts $a
+           set c [Expr {$a + $b}]
+           set a $b
+           set b $c
