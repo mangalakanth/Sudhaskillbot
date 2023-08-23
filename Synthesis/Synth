@@ -1,0 +1,128 @@
+# This section initiates the generic synthesis process to generate a generic gate-level netlist.
+
+# Set the synthesis effort level for generic synthesis
+set_db / .syn_generic_effort $GEN_EFF
+# Set the synthesis effort level for generic synthesis using the specified variable.
+# This will affect synthesis runtime and optimizations.
+
+# Initiate generic synthesis
+syn_generic
+# Start the generic synthesis process to generate a gate-level netlist.
+
+#syn generic i command  -\    
+puts "Runtime & Memory after 'syn_generic'"
+time_info GENERIC
+# Print the runtime and memory usage information after completing the 'syn_generic' step.
+report_dp > $_REPORTS_PATH/generic/${DESIGN}_datapath.rpt
+# Generate a report on the datapath
+# Generate a report on the datapath operators and related information in the design.
+
+
+write_snapshot -outdir $_REPORTS_PATH -tag generic
+#it is used to genrate the report and database snapshots  
+
+report_summary -directory $_REPORTS_PATH
+#it genarates the various satges summary in forma of a table of the genus flow 
+
+#### Build RTL power models
+##build_rtl_power_models -design $DESIGN -clean_up_netlist [-clock_gating_logic] [-relative <hierarchical instance>]
+#report power -rtl
+
+
+####################################################################################################
+## Synthesizing to gates
+####################################################################################################
+
+# Perform synthesis and mapping to gates.
+# This section performs technology mapping and logic synthesis to convert RTL to gate-level representation.
+
+# Set the synthesis effort level for mapping
+set_db / .syn_map_effort $MAP_OPT_EFF
+# Set the synthesis effort level for technology mapping and logic synthesis using the specified variable.
+
+# Initiate mapping and logic synthesis
+syn_map
+puts "Runtime & Memory after 'syn_map'"
+# Print the runtime and memory usage information after completing the 'syn_map' step.
+time_info MAPPED
+write_snapshot -outdir $_REPORTS_PATH -tag map
+report_summary -directory $_REPORTS_PATH
+report_dp > $_REPORTS_PATH/map/${DESIGN}_datapath.rpt
+# Generate a report on the datapath operators and related information in the design after mapping.
+
+foreach cg [vfind / -cost_group *] {
+  report_timing -group [list $cg] > $_REPORTS_PATH/${DESIGN}_[vbasename $cg]_post_map.rpt
+}
+
+write_do_lec -revised_design fv_map -logfile ${_LOG_PATH}/rtl2intermediate.lec.log > ${_OUTPUTS_PATH}/rtl2intermediate.lec.do
+
+## ungroup -threshold <value>
+
+
+#######################################################################################################
+## Optimize Netlist
+#######################################################################################################
+
+## Uncomment to remove assigns & insert tiehilo cells during Incremental synthesis
+##set_db / .remove_assigns true 
+##set_remove_assign_options -buffer_or_inverter <libcell> -design <design|subdesign> 
+##set_db / .use_tiehilo_for_const <none|duplicate|unique> 
+
+# Generate a report on the datapath operators and related information in the design after mapping.
+set_db / .syn_opt_effort $MAP_OPT_EFF
+syn_opt
+#it takes a mapped design as input and incrementallu optimizes the design
+
+write_snapshot -outdir $_REPORTS_PATH -tag syn_opt
+report_summary -directory $_REPORTS_PATH
+
+puts "Runtime & Memory after 'syn_opt'"
+time_info OPT
+
+foreach cg [vfind / -cost_group *] {
+  report_timing -group [list $cg] > $_REPORTS_PATH/${DESIGN}_[vbasename $cg]_post_opt.rpt
+}
+
+
+######################################################################################################
+## write backend file set (verilog, SDC, config, etc.)
+######################################################################################################
+
+# Generate backend files.
+# This section generates various backend files including Verilog, SDC, power intent, and library LEF.
+
+# Generate a report on clock gating
+report_clock_gating > $_REPORTS_PATH/${DESIGN}_clockgating.rpt
+
+report_power -depth 0 > $_REPORTS_PATH/${DESIGN}_power.rpt
+report_gates -power > $_REPORTS_PATH/${DESIGN}_gates_power.rpt
+
+report_dp > $_REPORTS_PATH/${DESIGN}_datapath_incr.rpt
+report_messages > $_REPORTS_PATH/${DESIGN}_messages.rpt
+write_snapshot -outdir $_REPORTS_PATH -tag final
+report_summary -directory $_REPORTS_PATH
+write_hdl  > ${_OUTPUTS_PATH}/${DESIGN}_synth.v
+## write_script > ${_OUTPUTS_PATH}/${DESIGN}_m.script
+write_sdc > ${_OUTPUTS_PATH}/${DESIGN}_synth.sdc
+write_power_intent -1801 -base_name ${_OUTPUTS_PATH}/${DESIGN}_synth
+write_lib_lef -lib ${_OUTPUTS_PATH}/${DESIGN}
+#it write the out timing model for the library and in lef format
+
+ 
+#################################
+### write_do_lec
+#################################
+
+write_do_lec -golden_design fv_map -revised_design ${_OUTPUTS_PATH}/${DESIGN}_m.v -logfile  ${_LOG_PATH}/intermediate2final.lec.log > ${_OUTPUTS_PATH}/intermediate2final.lec.do
+##Uncomment if the RTL is to be compared with the final netlist..
+write_do_lec -revised_design ${_OUTPUTS_PATH}/${DESIGN}_m.v -logfile ${_LOG_PATH}/rtl2final.lec.log > ${_OUTPUTS_PATH}/rtl2final.lec.do
+
+puts "Final Runtime & Memory."
+time_info FINAL
+#provides time-related information about the "FINAL" phase
+puts "============================"
+puts "Synthesis Finished ........."
+puts "============================"
+
+exit
+##quit
